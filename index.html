@@ -43,7 +43,26 @@
       color: #fff;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .header-logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .header-logo {
+      height: 36px;
+      width: 36px;
+      object-fit: contain;
+      border-radius: 50%;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .header-logo:hover {
+      transform: scale(1.1);
+      opacity: 0.9;
     }
 
     .btn-reset {
@@ -162,6 +181,9 @@
 
 <header class="header">
   <div class="header-title">
+    <a href="https://wiki14.ss220.club/wiki/%D0%9A%D0%BE%D1%81%D0%BC%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9_%D0%97%D0%B0%D0%BA%D0%BE%D0%BD" target="_blank" class="header-logo-link" title="Перейти на Вики SS220">
+      <img src="logo.png" alt="SS220 Logo" class="header-logo">
+    </a>
     ⚖️ Калькулятор Космического Закона
   </div>
   <button class="btn-reset" onclick="resetAll()">↻ Сбросить всё</button>
@@ -207,7 +229,6 @@ const articlesData = [
   { code: "100", name: "Ущерб активам станции", group: "00", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
   { code: "102", name: "Нанесение побоев", group: "02", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
   { code: "103", name: "Владение наркотическими средствами", group: "03", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
-  { code: "105", name: "Непристойное поведение", group: "05", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
   { code: "106", name: "Злоупотребление экипировкой", group: "06", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
   { code: "108", name: "Проникновение", group: "08", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
   { code: "109", name: "Сопротивление аресту", group: "09", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
