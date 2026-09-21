@@ -3,18 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Калькулятор Космического Закона</title>
   <style>
     :root {
-      --bg-color: #121417;
-      --card-bg: #1e2228;
-      --border-color: #323842;
-      --text-main: #e1e4e8;
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --header-bg: #1f242d;
+      --border-color: #30363d;
+      --text-main: #c9d1d9;
       --text-muted: #8b949e;
-      --accent-red: #da3633;
-      --accent-green: #238636;
+      --accent-red: #f85149;
+      --accent-green: #3fb950;
       --accent-yellow: #d29922;
       --accent-blue: #58a6ff;
+      --btn-danger: #da3633;
     }
 
     body {
@@ -22,16 +25,52 @@
       background-color: var(--bg-color);
       color: var(--text-main);
       margin: 0;
-      padding: 20px;
+      padding: 0;
+    }
+
+    .header {
+      background-color: var(--header-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-reset {
+      background-color: transparent;
+      border: 1px solid var(--btn-danger);
+      color: #f85149;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+
+    .btn-reset:hover {
+      background-color: var(--btn-danger);
+      color: #fff;
     }
 
     .container {
-      max-width: 1000px;
-      width: 100%;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
       display: grid;
-      grid-template-columns: 1fr 340px;
+      grid-template-columns: 1fr 360px;
       gap: 20px;
     }
 
@@ -39,7 +78,8 @@
       .container { grid-template-columns: 1fr; }
     }
 
-    h1, h2, h3 { margin-top: 0; color: #fff; }
+    h2 { margin-top: 0; color: #fff; font-size: 1.1rem; }
+    
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -51,46 +91,44 @@
     .category-title {
       font-weight: bold;
       padding: 8px 12px;
-      background: #272d36;
-      border-radius: 4px;
-      margin-bottom: 10px;
+      background: #21262d;
+      border-radius: 6px;
+      margin: 15px 0 10px 0;
       border-left: 4px solid var(--accent-blue);
+      color: #fff;
     }
 
     .article-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 8px;
-      margin-bottom: 15px;
     }
 
     .article-item, .modifier-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: #16191d;
+      background: #0d1117;
       padding: 8px 12px;
-      border-radius: 4px;
+      border-radius: 6px;
       border: 1px solid var(--border-color);
       cursor: pointer;
       user-select: none;
+      font-size: 0.9rem;
     }
 
     .article-item:hover, .modifier-item:hover {
       border-color: var(--accent-blue);
     }
 
-    .article-item input, .modifier-item input {
-      cursor: pointer;
-    }
-
     .badge {
       font-size: 0.8em;
       padding: 2px 6px;
       border-radius: 4px;
-      background: var(--border-color);
-      color: #fff;
+      background: #21262d;
+      color: #58a6ff;
       font-weight: bold;
+      border: 1px solid var(--border-color);
     }
 
     .result-box {
@@ -100,18 +138,17 @@
     }
 
     .status-badge {
-      font-size: 1.2em;
+      font-size: 1.1em;
       font-weight: bold;
       text-align: center;
       padding: 12px;
       border-radius: 6px;
       margin-top: 15px;
-      background: #272d36;
     }
 
-    .status-normal { background: #1f3a29; color: #3fb950; border: 1px solid #238636; }
-    .status-permabrig { background: #3d2e14; color: #f2cc60; border: 1px solid #d29922; }
-    .status-execution { background: #3d1c1d; color: #f85149; border: 1px solid #da3633; }
+    .status-normal { background: #122c1b; color: #3fb950; border: 1px solid #238636; }
+    .status-permabrig { background: #38280e; color: #f2cc60; border: 1px solid #bb8009; }
+    .status-execution { background: #3c1e1e; color: #f85149; border: 1px solid #da3633; }
 
     .summary-list {
       font-size: 0.9em;
@@ -123,11 +160,15 @@
 </head>
 <body>
 
+<header class="header">
+  <div class="header-title">
+    ⚖️ Калькулятор Космического Закона
+  </div>
+  <button class="btn-reset" onclick="resetAll()">↻ Сбросить всё</button>
+</header>
+
 <div class="container">
-  <!-- ЛЕВАЯ КОЛОНКА: Выбор статей и модификаторов -->
   <div>
-    <h1>Калькулятор Космического Закона</h1>
-    
     <div class="card">
       <h2>Статьи обвинения</h2>
       <div id="articles-container"></div>
@@ -139,7 +180,6 @@
     </div>
   </div>
 
-  <!-- ПРАВАЯ КОЛОНКА: Итог -->
   <div class="result-box">
     <div class="card">
       <h2>Итоговый приговор</h2>
@@ -148,8 +188,8 @@
       <ul id="selected-list" class="summary-list"></ul>
       <hr style="border-color: var(--border-color)">
       
-      <div>Базовый срок (до лимита): <b id="raw-time">0</b> мин.</div>
-      <div>С учетом совокупности ($1.5 \times T_{\max}$): <b id="capped-time">0</b> мин.</div>
+      <div>Базовый срок: <b id="raw-time">0</b> мин.</div>
+      <div>С учетом совокупности (1.5x max): <b id="capped-time">0</b> мин.</div>
       <div style="font-size: 1.2em; margin-top: 10px;">
         Итоговый срок: <b id="final-time" style="color: var(--accent-blue)">0</b> мин.
       </div>
@@ -272,7 +312,6 @@ function render() {
 }
 
 function calculate() {
-  // Исключаем совпадения по группе _XX, оставляя только статью с наибольшим сроком
   const grouped = {};
   selectedArticles.forEach(code => {
     const art = articlesData.find(a => a.code === code);
@@ -298,11 +337,9 @@ function calculate() {
     if (a.time > maxTime) maxTime = a.time;
   });
 
-  // Правило 1.5x max
   const capLimit = maxTime * 1.5;
   let totalTime = Math.min(rawSum, capLimit);
 
-  // Применение модификаторов
   let mult = 1.0;
   let add = 0;
   let isCleared = false;
@@ -342,6 +379,13 @@ function calculate() {
     statusBox.className = 'status-badge status-normal';
     statusBox.innerText = 'Свободен / Предупреждение';
   }
+}
+
+function resetAll() {
+  selectedArticles.clear();
+  selectedModifiers.clear();
+  render();
+  calculate();
 }
 
 render();
