@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор Космического Закона</title>
+  <style>
+    :root {
+      --bg-color: #121417;
+      --card-bg: #1e2228;
+      --border-color: #323842;
+      --text-main: #e1e4e8;
+      --text-muted: #8b949e;
+      --accent-red: #da3633;
+      --accent-green: #238636;
+      --accent-yellow: #d29922;
+      --accent-blue: #58a6ff;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+    }
+
+    @media (max-width: 850px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    h1, h2, h3 { margin-top: 0; color: #fff; }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .category-title {
+      font-weight: bold;
+      padding: 8px 12px;
+      background: #272d36;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      border-left: 4px solid var(--accent-blue);
+    }
+
+    .article-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .article-item, .modifier-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #16191d;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .article-item:hover, .modifier-item:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .article-item input, .modifier-item input {
+      cursor: pointer;
+    }
+
+    .badge {
+      font-size: 0.8em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--border-color);
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .result-box {
+      position: sticky;
+      top: 20px;
+      height: fit-content;
+    }
+
+    .status-badge {
+      font-size: 1.2em;
+      font-weight: bold;
+      text-align: center;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      background: #272d36;
+    }
+
+    .status-normal { background: #1f3a29; color: #3fb950; border: 1px solid #238636; }
+    .status-permabrig { background: #3d2e14; color: #f2cc60; border: 1px solid #d29922; }
+    .status-execution { background: #3d1c1d; color: #f85149; border: 1px solid #da3633; }
+
+    .summary-list {
+      font-size: 0.9em;
+      color: var(--text-muted);
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- ЛЕВАЯ КОЛОНКА: Выбор статей и модификаторов -->
+  <div>
+    <h1>Калькулятор Космического Закона</h1>
+    
+    <div class="card">
+      <h2>Статьи обвинения</h2>
+      <div id="articles-container"></div>
+    </div>
+
+    <div class="card">
+      <h2>Модификаторы наказания</h2>
+      <div id="modifiers-container" class="article-grid"></div>
+    </div>
+  </div>
+
+  <!-- ПРАВАЯ КОЛОНКА: Итог -->
+  <div class="result-box">
+    <div class="card">
+      <h2>Итоговый приговор</h2>
+      <div>Выбрано статей: <b id="selected-count">0</b></div>
+      
+      <ul id="selected-list" class="summary-list"></ul>
+      <hr style="border-color: var(--border-color)">
+      
+      <div>Базовый срок (до лимита): <b id="raw-time">0</b> мин.</div>
+      <div>С учетом совокупности ($1.5 \times T_{\max}$): <b id="capped-time">0</b> мин.</div>
+      <div style="font-size: 1.2em; margin-top: 10px;">
+        Итоговый срок: <b id="final-time" style="color: var(--accent-blue)">0</b> мин.
+      </div>
+
+      <div id="status-box" class="status-badge status-normal">
+        Свободен / Предупреждение
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const articlesData = [
+  // 1XX
+  { code: "100", name: "Ущерб активам станции", group: "00", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
+  { code: "102", name: "Нанесение побоев", group: "02", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
+  { code: "103", name: "Владение наркотическими средствами", group: "03", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
+  { code: "105", name: "Непристойное поведение", group: "05", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
+  { code: "106", name: "Злоупотребление экипировкой", group: "06", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
+  { code: "108", name: "Проникновение", group: "08", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
+  { code: "109", name: "Сопротивление аресту", group: "09", time: 5, cat: "1XX — Малозначительные (до 5 мин)" },
+
+  // 2XX
+  { code: "200", name: "Халатность", group: "00", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "201", name: "Похищение", group: "01", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "202", name: "Нападение", group: "02", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "203", name: "Распространение наркотиков", group: "03", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "204", name: "Незаконное владение оружием", group: "04", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "205", name: "Мошенничество", group: "05", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "206", name: "Злоупотребление конфискатом", group: "06", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "207", name: "Мелкая кража", group: "07", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+  { code: "208", name: "Проникновение со взломом", group: "08", time: 10, cat: "2XX — Средней тяжести (10 мин)" },
+
+  // 3XX
+  { code: "300", name: "Саботаж", group: "00", time: 20, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "301", name: "Похищение лица при исполнении", group: "01", time: 20, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "302", name: "Нападение с отягчающими", group: "02", time: 20, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "304", name: "Владение огранич. вооружением", group: "04", time: 15, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "305", name: "Участие в демонстрациях", group: "05", time: 15, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "306", name: "Владение контрабандой", group: "06", time: 15, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "307", name: "Кража", group: "07", time: 15, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "308", name: "Проникновение в огранич. зоны", group: "08", time: 15, cat: "3XX — Тяжкие (15-20 мин)" },
+  { code: "309", name: "Нападение на лицо при исполнении", group: "09", time: 20, cat: "3XX — Тяжкие (15-20 мин)" },
+
+  // 4XX
+  { code: "400", name: "Крупный саботаж", group: "00", time: 30, cat: "4XX — Особо тяжкие (30 мин)" },
+  { code: "401", name: "Непредумышленное убийство", group: "01", time: 30, cat: "4XX — Особо тяжкие (30 мин)" },
+  { code: "402", name: "Покушение на убийство", group: "02", time: 30, cat: "4XX — Особо тяжкие (30 мин)" },
+  { code: "405", name: "Подстрекательство к демонстрациям", group: "05", time: 30, cat: "4XX — Особо тяжкие (30 мин)" },
+  { code: "407", name: "Кража в крупных размерах", group: "07", time: 30, cat: "4XX — Особо тяжкие (30 мин)" },
+
+  // 5XX
+  { code: "502", name: "Убийство", group: "02", time: 0, execution: true, cat: "5XX — Высшая мера" },
+  { code: "505", name: "Мятеж", group: "05", time: 0, execution: true, cat: "5XX — Высшая мера" }
+];
+
+const modifiersData = [
+  { id: "cooperation", name: "Сотрудничество (-50%)", mult: 0.5 },
+  { id: "surrender", name: "Явка с повинной (-50%)", mult: 0.5 },
+  { id: "refusal", name: "Отказ от сотрудничества (+50%)", mult: 1.5 },
+  { id: "recidivism_1", name: "Рецидив 1 (+10 мин)", add: 10 },
+  { id: "recidivism_2", name: "Рецидив 2 (+20 мин)", add: 20 },
+  { id: "recidivism_3", name: "Рецидив 3 (+30 мин)", add: 30 },
+  { id: "recidivism_4", name: "Рецидив 4 (+40 мин)", add: 40 },
+  { id: "self_defense", name: "Самооборона / Крайняя необх.", clear: true },
+  { id: "enemy_conv", name: "Вражеская конвертация", custom: "Освобождение / Деконвертация" }
+];
+
+let selectedArticles = new Set();
+let selectedModifiers = new Set();
+
+function render() {
+  const artContainer = document.getElementById('articles-container');
+  artContainer.innerHTML = '';
+
+  const categories = [...new Set(articlesData.map(a => a.cat))];
+  categories.forEach(cat => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'category-title';
+    catDiv.innerText = cat;
+    artContainer.appendChild(catDiv);
+
+    const grid = document.createElement('div');
+    grid.className = 'article-grid';
+
+    articlesData.filter(a => a.cat === cat).forEach(a => {
+      const label = document.createElement('label');
+      label.className = 'article-item';
+      label.innerHTML = `
+        <input type="checkbox" value="${a.code}" ${selectedArticles.has(a.code) ? 'checked' : ''}>
+        <span class="badge">${a.code}</span>
+        <span>${a.name}</span>
+      `;
+      label.querySelector('input').addEventListener('change', (e) => {
+        if (e.target.checked) selectedArticles.add(a.code);
+        else selectedArticles.delete(a.code);
+        calculate();
+      });
+      grid.appendChild(label);
+    });
+    artContainer.appendChild(grid);
+  });
+
+  const modContainer = document.getElementById('modifiers-container');
+  modContainer.innerHTML = '';
+  modifiersData.forEach(m => {
+    const label = document.createElement('label');
+    label.className = 'modifier-item';
+    label.innerHTML = `
+      <input type="checkbox" value="${m.id}" ${selectedModifiers.has(m.id) ? 'checked' : ''}>
+      <span>${m.name}</span>
+    `;
+    label.querySelector('input').addEventListener('change', (e) => {
+      if (e.target.checked) selectedModifiers.add(m.id);
+      else selectedModifiers.delete(m.id);
+      calculate();
+    });
+    modContainer.appendChild(label);
+  });
+}
+
+function calculate() {
+  // Исключаем совпадения по группе _XX, оставляя только статью с наибольшим сроком
+  const grouped = {};
+  selectedArticles.forEach(code => {
+    const art = articlesData.find(a => a.code === code);
+    if (!grouped[art.group] || art.time > grouped[art.group].time || art.execution) {
+      grouped[art.group] = art;
+    }
+  });
+
+  const activeArticles = Object.values(grouped);
+  const activeMods = modifiersData.filter(m => selectedModifiers.has(m.id));
+
+  document.getElementById('selected-count').innerText = selectedArticles.size;
+  const listEl = document.getElementById('selected-list');
+  listEl.innerHTML = activeArticles.map(a => `<li><b>${a.code}</b> ${a.name} (${a.execution ? 'ВМН' : a.time + 'м'})</li>`).join('');
+
+  let rawSum = 0;
+  let maxTime = 0;
+  let hasExecution = false;
+
+  activeArticles.forEach(a => {
+    if (a.execution) hasExecution = true;
+    rawSum += a.time;
+    if (a.time > maxTime) maxTime = a.time;
+  });
+
+  // Правило 1.5x max
+  const capLimit = maxTime * 1.5;
+  let totalTime = Math.min(rawSum, capLimit);
+
+  // Применение модификаторов
+  let mult = 1.0;
+  let add = 0;
+  let isCleared = false;
+  let customStatus = null;
+
+  activeMods.forEach(m => {
+    if (m.mult) mult *= m.mult;
+    if (m.add) add += m.add;
+    if (m.clear) isCleared = true;
+    if (m.custom) customStatus = m.custom;
+  });
+
+  totalTime = Math.round(totalTime * mult) + add;
+
+  document.getElementById('raw-time').innerText = rawSum;
+  document.getElementById('capped-time').innerText = capLimit;
+  document.getElementById('final-time').innerText = totalTime;
+
+  const statusBox = document.getElementById('status-box');
+
+  if (isCleared) {
+    statusBox.className = 'status-badge status-normal';
+    statusBox.innerText = 'Снятие всех обвинений';
+  } else if (customStatus) {
+    statusBox.className = 'status-badge status-permabrig';
+    statusBox.innerText = customStatus;
+  } else if (hasExecution || totalTime >= 90) {
+    statusBox.className = 'status-badge status-execution';
+    statusBox.innerText = 'Высшая мера / Казнь / Пермабриг';
+  } else if (totalTime >= 60) {
+    statusBox.className = 'status-badge status-permabrig';
+    statusBox.innerText = 'Пермабриг / Киборгизация';
+  } else if (totalTime > 0) {
+    statusBox.className = 'status-badge status-normal';
+    statusBox.innerText = `Заключение на ${totalTime} мин.`;
+  } else {
+    statusBox.className = 'status-badge status-normal';
+    statusBox.innerText = 'Свободен / Предупреждение';
+  }
+}
+
+render();
+calculate();
+</script>
+
+</body>
+</html>
